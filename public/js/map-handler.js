@@ -1,9 +1,11 @@
 function initMap() {
     /**
      * MapHandler
-     *  NOTE: On the mac I developed on the SHIFT + MOUSE-LEFT-BUTTON + DRAG-MOUSE is used for selecting.
+     *  NOTE 1: SHIFT + MOUSE-LEFT-BUTTON + DRAG-MOUSE is used for selecting markers on the map
+     *  NOTE 2: See directory /public/data/ for available GEOJSON files to upload
+     *  NOTE 3: See directory /public/images/testing for screenshots taken durng testing process
      *
-     * @type {{map: null, rectangle: null, shiftPressed: boolean, mouseDownPos: null, mouseIsDown: number, lassoContent: string, iconColor: string, options: {zoom: number, center: {lat: number, lng: number}}, poi: *[], modal: null, table: null, jsonForm: null, colorForm: null, lassoo: null, markers: Array, coordsRenderer: Array, init: mapHandler.init, reloadMarkers: mapHandler.reloadMarkers, renderRectangle: mapHandler.renderRectangle, removeRectangle: mapHandler.removeRectangle, renderLassooTable: mapHandler.renderLassooTable, registerEvents: mapHandler.registerEvents, addMarker: mapHandler.addMarker, isBounded: mapHandler.isBounded, hideForms: mapHandler.hideForms}}
+     * @type {{map: null, rectangle: null, shiftPressed: boolean, mouseDownPos: null, mouseIsDown: number, lassoContent: string, iconColor: string, options: {zoom: number, center: {lat: number, lng: number}}, poi: *[], modal: null, table: null, jsonForm: null, colorForm: null, lassoo: null, markers: Array, coordsRenderer: Array, init: mapHandler.init, reloadMarkers: mapHandler.reloadMarkers, renderRectangle: mapHandler.renderRectangle, removeRectangle: mapHandler.removeRectangle, renderLassooTable: mapHandler.renderLassooTable, registerEvents: mapHandler.registerEvents, addMarker: mapHandler.renderMarker, isBounded: mapHandler.isBounded, hideForms: mapHandler.hideForms}}
      */
     let mapHandler = {
         map: null,
@@ -13,26 +15,27 @@ function initMap() {
         mouseIsDown: 0,
         lassoContent: '',
         iconColor: 'red',
+        strokeColor: '#277AF5',
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: 'white',
+        fillOpacity: 0.50,
         options: {
             zoom: 8,
             center: {
-                lat: 42.3601,
-                lng: -71.0589
+                lat: 53.3498,// Default map view DUBLIN, IRELAND
+                lng: -6.2603
             }
         },
-        // TODO:: IMPORT THIS OBJECT FROM .JSON FILE INSTEAD OF HARDCODING
-        poi: [
-            {coords: {lat: 42.4668, lng: -70.9454}, content: '<h1>A</h1>'},
-            {coords: {lat: 42.8584, lng: -70.9300}, content: '<h1>B</h1>'},
-            {coords: {lat: 42.7762, lng: -71.0773}, content: '<h1>C</h1>'}
-        ],
+        poi: null,
+        markers: [],
         modal: null,
         table: null,
         jsonForm: null,
         colorForm: null,
         lassoo: null,
-        markers: [],
         coordsRenderer: [],
+        shiftKey: 16,
         init: function () {
             mapHandler.modal = $("#general-modal");
             mapHandler.table = $("#table-container");
@@ -42,61 +45,72 @@ function initMap() {
             mapHandler.lassoo = $('#lassoo');
             mapHandler.registerEvents();
             mapHandler.reloadMarkers();
-
-            /* ON MAP MOUSEDOWN */
-            google.maps.event.addListener(mapHandler.map, 'mousedown', function (e) {
-
-                /* If not shift pressed; exit */
-                if (!mapHandler.shiftPressed) {
-                    return;
-                }
-
-                console.log(e.latLng);
-                mapHandler.mouseIsDown = 1;
-                mapHandler.mouseDownPos = e.latLng;
-            });
-
-            /* ON MAP MOUSEUP */
-            google.maps.event.addListener(mapHandler.map, 'mouseup', function (e) {
-
-                /* If not shift pressed; exit */
-                if (!mapHandler.shiftPressed) {
-                    return;
-                }
-
-                /* Define rectangle bounds */
-                var bounds = new google.maps.LatLngBounds(mapHandler.mouseDownPos, e.latLng);
-
-                /* Render */
-                mapHandler.renderRectangle(bounds);
-                mapHandler.lassoo.trigger("click");
-
-                /* Render lassoo table */
-                var lassooTable = mapHandler.renderLassooTable();
-
-                mapHandler.modal.modal('show');
-                mapHandler.hideForms();
-                mapHandler.table.removeClass('hidden');
-                mapHandler.coordsRenderer.html(lassooTable);
-            });
         },
         reloadMarkers: function () {
 
-            // Loop through markers and set map to null for each
+            /* Loop through markers and set map to null for each */
             for (var i = 0; i < mapHandler.markers.length; i++) {
                 mapHandler.markers[i].setMap(null);
             }
 
-            // Reset the markers array
+            /* Reset markers list */
             mapHandler.markers = [];
             mapHandler.rectangle = new google.maps.Rectangle();
             mapHandler.map = new google.maps.Map(document.getElementById('map'), mapHandler.options);
 
-            /* Foreach POI */
-            for (var i = 0; i < mapHandler.poi.length; i++) {
-                /* Add point to Map */
-                mapHandler.addMarker(mapHandler.poi[i]);
+            /* If no POI's available */
+            if (mapHandler.poi === null) {
+                return;
             }
+
+            /* Define new map bounds object */
+            var bounds = new google.maps.LatLngBounds();
+
+            /* Foreach POI */
+            for (var i = 0; i < mapHandler.poi.features.length; i++) {
+                /* Add point to Map */
+                marker = mapHandler.renderMarker(mapHandler.poi.features[i]);
+
+                /* Include marker in bounded / visible area of map */
+                bounds.extend(marker.position);
+            }
+
+            /* Centre map over bounded markers (newly rendered points of interest) */
+            mapHandler.map.fitBounds(bounds);
+        },
+        renderMarker: function (params) {
+            let lat = params.geometry.coordinates[0],
+                lng = params.geometry.coordinates[1],
+                name = params.properties.name,
+                content = params.properties.content,
+                marker = new google.maps.Marker({
+                    position: {lat: lat, lng: lng},
+                    map: mapHandler.map,
+                    icon: '',
+                    animation: google.maps.Animation.DROP
+                });
+
+            /* If there's a custom icon */
+            if (mapHandler.iconColor) {
+                var icon = 'http://maps.google.com/mapfiles/ms/icons/'+mapHandler.iconColor+'-dot.png';
+                marker.setIcon(icon);
+            }
+
+            /* If there's custom content */
+            if (content) {
+                var infoWindow = new google.maps.InfoWindow({
+                    content: content
+                });
+
+                marker.addListener('click', function () {
+                    infoWindow.open(mapHandler.map, marker);
+                });
+            }
+
+            /* Global markers */
+            mapHandler.markers.push(marker);
+
+            return marker;
         },
         renderRectangle: function (bounds) {
 
@@ -105,11 +119,11 @@ function initMap() {
 
             /* Re-render rectangle */
             mapHandler.rectangle.setOptions({
-                strokeColor: '#277AF5',
-                strokeOpacity: 0.8,
-                strokeWeight: 2,
-                fillColor: 'white',
-                fillOpacity: 0.50,
+                strokeColor: mapHandler.strokeColor,
+                strokeOpacity: mapHandler.strokeOpacity,
+                strokeWeight: mapHandler.strokeWeight,
+                fillColor: mapHandler.fillColor,
+                fillOpacity: mapHandler.fillOpacity,
                 map: mapHandler.map,
                 bounds: bounds
             });
@@ -119,40 +133,52 @@ function initMap() {
         },
         renderLassooTable: function () {
             /* Reset content */
-            var content = '';
+            let output = '',
+                params = mapHandler.poi.features;
 
-            for (var i = 0; i < mapHandler.poi.length; i++) {
+            for (var i = 0; i < params.length; i++) {
+                let lat = params[i].geometry.coordinates[0],
+                    lng = params[i].geometry.coordinates[1],
+                    name = params[i].properties.name,
+                    content = params[i].properties.content;
+
                 /**
-                 * For 2 given points
-                 *  Is our Point-of-interest between them
-                 *  TODO:: Cant get the lng and lat values from these event objects for some reason
-                 *  TODO:: Hardcoding values to simulate correct behaviour
+                 * Is our Point-of-interest inside the selection area ?
                  */
-                if (mapHandler.isBounded(43.13860642602184, -71.377503515625, 42.29918498142734, -70.5040904296875, mapHandler.poi[i].coords.lat, mapHandler.poi[i].coords.lng)) {
-
+                if (mapHandler.isBounded(
+                        mapHandler.mouseDownPos.lat(),
+                        mapHandler.mouseDownPos.lng(),
+                        mapHandler.mouseUpPos.lat(),
+                        mapHandler.mouseUpPos.lng(),
+                        lat,
+                        lng
+                    )
+                ) {
                     /* If yes */
-                    content += '<tr>'+
+                    output += '<tr>'+
                         '<th scope="row"></th>'+
-                        '<td>'+mapHandler.poi[i].content+'</td>'+
-                        '       <td>'+mapHandler.poi[i].coords.lat+'</td>'+
-                        '       <td>'+mapHandler.poi[i].coords.lng+'</td>'+
+                        '<td>'+content+'</td>'+
+                        '       <td>'+lat+'</td>'+
+                        '       <td>'+lng+'</td>'+
                         '       </tr>'+
                         '</tr>';
                 }
             }
 
-            return content;
+            return output;
         },
         registerEvents: function () {
             $(window).keydown(function (evt) {
-                if (evt.which === 16) {
+                if (evt.which === mapHandler.shiftKey) {
+                    console.log('down');
                     mapHandler.shiftPressed = true;
                     mapHandler.map.setOptions({
                         draggable: false
                     });
                 }
             }).keyup(function (evt) {
-                if (evt.which === 16) {
+                if (evt.which === mapHandler.shiftKey) {
+                    console.log('up');
                     mapHandler.shiftPressed = false;
                     mapHandler.map.setOptions({
                         draggable: true
@@ -179,6 +205,57 @@ function initMap() {
                 $(document).on("click", "#cancel-upload, #selected-color-button, #close-lassoo", function () {
                     mapHandler.modal.modal('hide');
                 });
+                $(document).on("click", "#perform-upload", function () {
+                    mapHandler.modal.modal('hide');
+
+                    let filename = $(this).closest('form').find('#upload-json').val(),
+                        x = '/data/' + filename.split("\\")[2];
+
+                    /* Import GEO JSON file */
+                    mapHandler.loadJSON(x, function(response) {
+                        mapHandler.poi = JSON.parse(response);
+                        mapHandler.reloadMarkers();
+
+                        /* ON MAP MOUSEDOWN */
+                        google.maps.event.addListener(mapHandler.map, 'mousedown', function (e) {
+
+                            /* If not shift pressed; exit */
+                            if (!mapHandler.shiftPressed) {
+                                return;
+                            }
+
+                            mapHandler.mouseIsDown = 1;
+                            mapHandler.mouseDownPos = e.latLng;
+                        });
+
+                        /* ON MAP MOUSEUP */
+                        google.maps.event.addListener(mapHandler.map, 'mouseup', function (e) {
+
+                            /* If not shift pressed; exit */
+                            if (!mapHandler.shiftPressed) {
+                                return;
+                            }
+
+                            /* Set mouse up pos into object */
+                            mapHandler.mouseUpPos = e.latLng;
+
+                            /* Define rectangle bounds */
+                            var bounds = new google.maps.LatLngBounds(mapHandler.mouseDownPos, mapHandler.mouseUpPos);
+
+                            /* Render */
+                            mapHandler.renderRectangle(bounds);
+                            mapHandler.lassoo.trigger("click");
+
+                            /* Render lassoo table */
+                            var lassooTable = mapHandler.renderLassooTable();
+
+                            mapHandler.modal.modal('show');
+                            mapHandler.hideForms();
+                            mapHandler.table.removeClass('hidden');
+                            mapHandler.coordsRenderer.html(lassooTable);
+                        });
+                    });
+                });
                 $(document).on("click", "#get-json", function () {
                     mapHandler.modal.modal('show');
                     mapHandler.hideForms();
@@ -196,34 +273,6 @@ function initMap() {
                 });
             });
         },
-        addMarker: function (params) {
-            let marker = new google.maps.Marker({
-                position: params.coords,
-                map: mapHandler.map,
-                icon: params.icon,
-                animation: google.maps.Animation.DROP
-            });
-
-            /* If there's a custom icon */
-            if (mapHandler.iconColor) {
-                var icon = 'http://maps.google.com/mapfiles/ms/icons/'+mapHandler.iconColor+'-dot.png';
-                marker.setIcon(icon);
-            }
-
-            /* If there's custom content */
-            if (params.content) {
-                var infoWindow = new google.maps.InfoWindow({
-                    content: params.content
-                });
-
-                marker.addListener('click', function () {
-                    infoWindow.open(mapHandler.map, marker);
-                });
-            }
-
-            /* Global markers */
-            mapHandler.markers.push(marker);
-        },
         isBounded: function (top, left, bottom, right, latitude, longitude){
             if(top >= latitude && latitude >= bottom){
                 if(left <= right && left <= longitude && longitude <= right){
@@ -238,6 +287,17 @@ function initMap() {
             mapHandler.table.addClass('hidden');
             mapHandler.colorForm.addClass('hidden');
             mapHandler.jsonForm.addClass('hidden');
+        },
+        loadJSON: function (filePath, callback) {
+            var xobj = new XMLHttpRequest();
+            xobj.overrideMimeType("application/json");
+            xobj.open('GET', filePath, true);
+            xobj.onreadystatechange = function () {
+                if (xobj.readyState == 4 && xobj.status == "200") {
+                    callback(xobj.responseText);
+                }
+            };
+            xobj.send(null);
         }
     };
     mapHandler.init();

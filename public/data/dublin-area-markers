@@ -1,0 +1,49 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [53.3498, -6.2603]
+            },
+            "properties": {
+                "name": "Dublin",
+                "content": "<h4>Dublin</h4>"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [53.3509, -6.2500]
+            },
+            "properties": {
+                "name": "Connolly Station",
+                "content": "<h4>Connolly Station</h4>"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [53.3381736, -6.259119]
+            },
+            "properties": {
+                "name": "Stephens Green",
+                "content": "<h4>Stephens Green</h4>"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [53.3559, -6.3298]
+            },
+            "properties": {
+                "name": "Phoenix Park",
+                "content": "<h4>Phoenix Park</h4>"
+            }
+         }
+    ]
+}

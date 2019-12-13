@@ -1,0 +1,38 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [42.4668, -70.9454]
+            },
+            "properties": {
+                "name": "Lynn",
+                "content": "<h4>Lynn</h4>"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [42.8584, -70.9300]
+            },
+            "properties": {
+                "name": "Amesbury",
+                "content": "<h4>Amesbury</h4>"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [42.7762, -71.0773]
+            },
+            "properties": {
+                "name": "Haverhill",
+                "content": "<h4>Haverhill</h4>"
+            }
+        }
+    ]
+}
