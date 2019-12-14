@@ -1,9 +1,11 @@
 function initMap() {
     /**
      * MapHandler
+     *  Google Maps Javascript API Handler
+     *
      *  NOTE 1: SHIFT + MOUSE-LEFT-BUTTON + DRAG-MOUSE is used for selecting markers on the map
      *  NOTE 2: See directory /public/data/ for available GEOJSON files to upload
-     *  NOTE 3: See directory /public/images/testing for screenshots taken durng testing process
+     *  NOTE 3: See directory /public/images/testing for screenshots taken during testing process
      *
      * @type {{map: null, filePath: string, imagePath: string, rectangle: null, shiftPressed: boolean, mouseDownPos: null, mouseIsDown: number, lassoContent: string, iconColor: string, strokeColor: string, strokeOpacity: number, strokeWeight: number, fillColor: string, fillOpacity: number, options: {zoom: number, center: {lat: number, lng: number}}, poi: null, markers: Array, modal: null, table: null, jsonForm: null, colorForm: null, lassoo: null, coordsRenderer: Array, shiftKey: number, crosshair: string, init: mapHandler.init, reloadMarkers: mapHandler.reloadMarkers, renderMarker: mapHandler.renderMarker, renderRectangle: mapHandler.renderRectangle, removeRectangle: mapHandler.removeRectangle, renderLassooTable: mapHandler.renderLassooTable, registerEvents: mapHandler.registerEvents, attachClickHandlers: mapHandler.attachClickHandlers, isBounded: mapHandler.isBounded, hideForms: mapHandler.hideForms, loadJSON: mapHandler.loadJSON}}
      */
@@ -64,14 +66,14 @@ function initMap() {
 
             /* Foreach POI */
             for (var i = 0; i < mapHandler.poi.features.length; i++) {
-                /* Add point to Map */
+                /* Render point-of-interest on Map */
                 marker = mapHandler.renderMarker(mapHandler.poi.features[i]);
 
                 /* Include marker in bounded / visible area of map */
                 bounds.extend(marker.position);
             }
 
-            /* Centre map over bounded markers (newly rendered points of interest) */
+            /* Centre map over bounded markers */
             mapHandler.map.fitBounds(bounds);
         },
         renderMarker: function (params) {
@@ -96,13 +98,12 @@ function initMap() {
                 var infoWindow = new google.maps.InfoWindow({
                     content: content
                 });
-
                 marker.addListener('click', function () {
                     infoWindow.open(mapHandler.map, marker);
                 });
             }
 
-            /* Global markers */
+            /* Render marker on map */
             mapHandler.markers.push(marker);
 
             return marker;
@@ -134,23 +135,9 @@ function initMap() {
                     lng = params[i].geometry.coordinates[1],
                     content = params[i].properties.content;
 
-                /* Is our Point-of-interest inside the selection area ? */
-                if (mapHandler.isBounded(
-                        mapHandler.mouseDownPos.lat(),
-                        mapHandler.mouseDownPos.lng(),
-                        mapHandler.mouseUpPos.lat(),
-                        mapHandler.mouseUpPos.lng(),
-                        lat,
-                        lng
-                    )
-                ) {
-                    output += '<tr>'+
-                        '<th scope="row"></th>'+
-                        '<td>'+content+'</td>'+
-                        '       <td>'+lat+'</td>'+
-                        '       <td>'+lng+'</td>'+
-                        '       </tr>'+
-                        '</tr>';
+                /* Render point-of-interest (If inside selection area) */
+                if (mapHandler.isBounded(mapHandler.mouseDownPos.lat(), mapHandler.mouseDownPos.lng(), mapHandler.mouseUpPos.lat(), mapHandler.mouseUpPos.lng(), lat, lng)) {
+                    output += '<tr><th scope="row"></th><td>'+content+'</td><td>'+lat+'</td><td>'+lng+'</td></tr></tr>';
                 }
             }
 
@@ -159,7 +146,6 @@ function initMap() {
         registerEvents: function () {
             $(window).keydown(function (evt) {
                 if (evt.which === mapHandler.shiftKey) {
-                    console.log('down');
                     mapHandler.shiftPressed = true;
                     mapHandler.map.setOptions({
                         draggable: false
@@ -167,7 +153,6 @@ function initMap() {
                 }
             }).keyup(function (evt) {
                 if (evt.which === mapHandler.shiftKey) {
-                    console.log('up');
                     mapHandler.shiftPressed = false;
                     mapHandler.map.setOptions({
                         draggable: true
@@ -236,6 +221,10 @@ function initMap() {
                 mapHandler.mouseDownPos = e.latLng;
             });
 
+            /**
+             * Handles Mouseup after selecting area on map (drawing rectangle)
+             *  Allows selecting area from top left to bottom right and vice versa
+             */
             google.maps.event.addListener(mapHandler.map, 'mouseup', function (e) {
                 /* If not shift pressed; exit */
                 if (!mapHandler.shiftPressed) {
@@ -244,6 +233,17 @@ function initMap() {
 
                 /* Set mouse up pos into object */
                 mapHandler.mouseUpPos = e.latLng;
+
+                /* Determine if we need to swap the points */
+                let swap = false;
+                if (mapHandler.mouseDownPos.lng() > mapHandler.mouseUpPos.lng()) {
+                    swap = true;
+                }
+                if (swap) {
+                    let temp = mapHandler.mouseDownPos;
+                    mapHandler.mouseDownPos = mapHandler.mouseUpPos;
+                    mapHandler.mouseUpPos = temp;
+                }
 
                 /* Define rectangle bounds and render */
                 var bounds = new google.maps.LatLngBounds(mapHandler.mouseDownPos, mapHandler.mouseUpPos);

@@ -10,7 +10,10 @@ return [
     |
     */
 
-    /* Google Maps API Key */
+    /**
+     * Google Maps Javascript API Key
+     *  Restricted to 150 requests per day, max 25 requests per 100 seconds
+     */
     'GOOGLE_MAPS_API_KEY' => 'AIzaSyCfG6vqyHjMD7xW9xC4Q02i2EkQ1eQ55CY',
 
     /* Available site languages */
