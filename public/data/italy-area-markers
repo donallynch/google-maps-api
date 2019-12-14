@@ -8,7 +8,6 @@
                 "coordinates": [41.8719, 12.5674]
             },
             "properties": {
-                "name": "Italy",
                 "content": "<h4>Italy</h4>"
             }
         },
@@ -19,7 +18,6 @@
                 "coordinates": [41.8902, 12.4922]
             },
             "properties": {
-                "name": "Colosseum",
                 "content": "<h4>Colosseum</h4>"
             }
         },
@@ -30,7 +28,6 @@
                 "coordinates": [37.6000, 14.0154]
             },
             "properties": {
-                "name": "Sicily",
                 "content": "<h4>Sicily</h4>"
             }
         },
@@ -41,7 +38,6 @@
                 "coordinates": [41.9038163, 12.4476731]
             },
             "properties": {
-                "name": "Vatican City",
                 "content": "<h4>Vatican City</h4>"
             }
          }

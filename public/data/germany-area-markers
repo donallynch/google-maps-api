@@ -8,7 +8,6 @@
                 "coordinates": [51.1657, 10.4515]
             },
             "properties": {
-                "name": "Germany",
                 "content": "<h4>Germany</h4>"
             }
         },
@@ -19,7 +18,6 @@
                 "coordinates": [52.5163, 13.3777]
             },
             "properties": {
-                "name": "Brandenburg Gate",
                 "content": "<h4>Brandenburg Gate</h4>"
             }
         },
@@ -30,7 +28,6 @@
                 "coordinates": [50.9413, 6.9583]
             },
             "properties": {
-                "name": "Cologne Cathedral",
                 "content": "<h4>Cologne Cathedral</h4>"
             }
         },
@@ -41,7 +38,6 @@
                 "coordinates": [47.5576, 10.7498]
             },
             "properties": {
-                "name": "Neuschwanstein Castle",
                 "content": "<h4>Neuschwanstein Castle</h4>"
             }
          }

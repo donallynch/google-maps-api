@@ -8,7 +8,6 @@
                 "coordinates": [46.2276, 2.2137]
             },
             "properties": {
-                "name": "France",
                 "content": "<h4>France</h4>"
             }
         },
@@ -19,7 +18,6 @@
                 "coordinates": [48.8584, 2.2945]
             },
             "properties": {
-                "name": "Eiffel Tower",
                 "content": "<h4>Eiffel Tower</h4>"
             }
         },
@@ -30,7 +28,6 @@
                 "coordinates": [46.2276, 2.2137]
             },
             "properties": {
-                "name": "Louvre",
                 "content": "<h4>Louvre</h4>"
             }
         },
@@ -41,7 +38,6 @@
                 "coordinates": [48.804722, 2.121782]
             },
             "properties": {
-                "name": "Palace of Versailles",
                 "content": "<h4>Palace of Versailles</h4>"
             }
         },
@@ -52,7 +48,6 @@
                 "coordinates": [43.9352, 6.0679]
             },
             "properties": {
-                "name": "Provence-Alpes-Côte d'Azur",
                 "content": "<h4>Provence-Alpes-Côte d'Azur</h4>"
             }
         },
@@ -63,7 +58,6 @@
                 "coordinates": [48.6361, 1.5115]
             },
             "properties": {
-                "name": "Mont Saint-Michel",
                 "content": "<h4>Mont Saint-Michel</h4>"
             }
         },
@@ -74,7 +68,6 @@
                 "coordinates": [48.8530, 2.3499]
             },
             "properties": {
-                "name": "Cathédrale Notre-Dame de Paris",
                 "content": "<h4>Cathédrale Notre-Dame de Paris</h4>"
             }
         }

@@ -5,10 +5,12 @@ function initMap() {
      *  NOTE 2: See directory /public/data/ for available GEOJSON files to upload
      *  NOTE 3: See directory /public/images/testing for screenshots taken durng testing process
      *
-     * @type {{map: null, rectangle: null, shiftPressed: boolean, mouseDownPos: null, mouseIsDown: number, lassoContent: string, iconColor: string, options: {zoom: number, center: {lat: number, lng: number}}, poi: *[], modal: null, table: null, jsonForm: null, colorForm: null, lassoo: null, markers: Array, coordsRenderer: Array, init: mapHandler.init, reloadMarkers: mapHandler.reloadMarkers, renderRectangle: mapHandler.renderRectangle, removeRectangle: mapHandler.removeRectangle, renderLassooTable: mapHandler.renderLassooTable, registerEvents: mapHandler.registerEvents, addMarker: mapHandler.renderMarker, isBounded: mapHandler.isBounded, hideForms: mapHandler.hideForms}}
+     * @type {{map: null, filePath: string, imagePath: string, rectangle: null, shiftPressed: boolean, mouseDownPos: null, mouseIsDown: number, lassoContent: string, iconColor: string, strokeColor: string, strokeOpacity: number, strokeWeight: number, fillColor: string, fillOpacity: number, options: {zoom: number, center: {lat: number, lng: number}}, poi: null, markers: Array, modal: null, table: null, jsonForm: null, colorForm: null, lassoo: null, coordsRenderer: Array, shiftKey: number, crosshair: string, init: mapHandler.init, reloadMarkers: mapHandler.reloadMarkers, renderMarker: mapHandler.renderMarker, renderRectangle: mapHandler.renderRectangle, removeRectangle: mapHandler.removeRectangle, renderLassooTable: mapHandler.renderLassooTable, registerEvents: mapHandler.registerEvents, attachClickHandlers: mapHandler.attachClickHandlers, isBounded: mapHandler.isBounded, hideForms: mapHandler.hideForms, loadJSON: mapHandler.loadJSON}}
      */
     let mapHandler = {
         map: null,
+        filePath: '/data/',
+        imagePath: 'http://maps.google.com/mapfiles/ms/icons/',
         rectangle: null,
         shiftPressed: false,
         mouseDownPos: null,
@@ -20,13 +22,7 @@ function initMap() {
         strokeWeight: 2,
         fillColor: 'white',
         fillOpacity: 0.50,
-        options: {
-            zoom: 8,
-            center: {
-                lat: 53.3498,// Default map view DUBLIN, IRELAND
-                lng: -6.2603
-            }
-        },
+        options: {zoom: 8, center: {lat: 53.3498, lng: -6.2603}},// Default map view DUBLIN, IRELAND
         poi: null,
         markers: [],
         modal: null,
@@ -36,6 +32,7 @@ function initMap() {
         lassoo: null,
         coordsRenderer: [],
         shiftKey: 16,
+        crosshair: 'crosshair',
         init: function () {
             mapHandler.modal = $("#general-modal");
             mapHandler.table = $("#table-container");
@@ -47,7 +44,6 @@ function initMap() {
             mapHandler.reloadMarkers();
         },
         reloadMarkers: function () {
-
             /* Loop through markers and set map to null for each */
             for (var i = 0; i < mapHandler.markers.length; i++) {
                 mapHandler.markers[i].setMap(null);
@@ -58,7 +54,7 @@ function initMap() {
             mapHandler.rectangle = new google.maps.Rectangle();
             mapHandler.map = new google.maps.Map(document.getElementById('map'), mapHandler.options);
 
-            /* If no POI's available */
+            /* If no POI's available; exit */
             if (mapHandler.poi === null) {
                 return;
             }
@@ -81,7 +77,6 @@ function initMap() {
         renderMarker: function (params) {
             let lat = params.geometry.coordinates[0],
                 lng = params.geometry.coordinates[1],
-                name = params.properties.name,
                 content = params.properties.content,
                 marker = new google.maps.Marker({
                     position: {lat: lat, lng: lng},
@@ -92,7 +87,7 @@ function initMap() {
 
             /* If there's a custom icon */
             if (mapHandler.iconColor) {
-                var icon = 'http://maps.google.com/mapfiles/ms/icons/'+mapHandler.iconColor+'-dot.png';
+                var icon = mapHandler.imagePath+mapHandler.iconColor+'-dot.png';
                 marker.setIcon(icon);
             }
 
@@ -113,7 +108,6 @@ function initMap() {
             return marker;
         },
         renderRectangle: function (bounds) {
-
             /* Reset rectangle */
             mapHandler.removeRectangle();
 
@@ -132,19 +126,15 @@ function initMap() {
             mapHandler.rectangle.setMap(null);
         },
         renderLassooTable: function () {
-            /* Reset content */
             let output = '',
                 params = mapHandler.poi.features;
 
             for (var i = 0; i < params.length; i++) {
                 let lat = params[i].geometry.coordinates[0],
                     lng = params[i].geometry.coordinates[1],
-                    name = params[i].properties.name,
                     content = params[i].properties.content;
 
-                /**
-                 * Is our Point-of-interest inside the selection area ?
-                 */
+                /* Is our Point-of-interest inside the selection area ? */
                 if (mapHandler.isBounded(
                         mapHandler.mouseDownPos.lat(),
                         mapHandler.mouseDownPos.lng(),
@@ -154,7 +144,6 @@ function initMap() {
                         lng
                     )
                 ) {
-                    /* If yes */
                     output += '<tr>'+
                         '<th scope="row"></th>'+
                         '<td>'+content+'</td>'+
@@ -194,7 +183,7 @@ function initMap() {
                     } else {
                         $(this).addClass('btn-primary').removeClass('btn-secondary');
                         mapHandler.removeRectangle();
-                        state = 'crosshair';
+                        state = mapHandler.crosshair;
                     }
 
                     mapHandler.map.setOptions({
@@ -209,51 +198,13 @@ function initMap() {
                     mapHandler.modal.modal('hide');
 
                     let filename = $(this).closest('form').find('#upload-json').val(),
-                        x = '/data/' + filename.split("\\")[2];
+                        filePath = mapHandler.filePath + filename.split("\\")[2];
 
                     /* Import GEO JSON file */
-                    mapHandler.loadJSON(x, function(response) {
+                    mapHandler.loadJSON(filePath, function(response) {
                         mapHandler.poi = JSON.parse(response);
                         mapHandler.reloadMarkers();
-
-                        /* ON MAP MOUSEDOWN */
-                        google.maps.event.addListener(mapHandler.map, 'mousedown', function (e) {
-
-                            /* If not shift pressed; exit */
-                            if (!mapHandler.shiftPressed) {
-                                return;
-                            }
-
-                            mapHandler.mouseIsDown = 1;
-                            mapHandler.mouseDownPos = e.latLng;
-                        });
-
-                        /* ON MAP MOUSEUP */
-                        google.maps.event.addListener(mapHandler.map, 'mouseup', function (e) {
-
-                            /* If not shift pressed; exit */
-                            if (!mapHandler.shiftPressed) {
-                                return;
-                            }
-
-                            /* Set mouse up pos into object */
-                            mapHandler.mouseUpPos = e.latLng;
-
-                            /* Define rectangle bounds */
-                            var bounds = new google.maps.LatLngBounds(mapHandler.mouseDownPos, mapHandler.mouseUpPos);
-
-                            /* Render */
-                            mapHandler.renderRectangle(bounds);
-                            mapHandler.lassoo.trigger("click");
-
-                            /* Render lassoo table */
-                            var lassooTable = mapHandler.renderLassooTable();
-
-                            mapHandler.modal.modal('show');
-                            mapHandler.hideForms();
-                            mapHandler.table.removeClass('hidden');
-                            mapHandler.coordsRenderer.html(lassooTable);
-                        });
+                        mapHandler.attachClickHandlers();
                     });
                 });
                 $(document).on("click", "#get-json", function () {
@@ -270,14 +221,46 @@ function initMap() {
                     let item = $(this).closest('form').find('#selected-color').val();
                     mapHandler.iconColor = item;
                     mapHandler.reloadMarkers();
+                    mapHandler.attachClickHandlers();
                 });
             });
         },
+        attachClickHandlers: function () {
+            google.maps.event.addListener(mapHandler.map, 'mousedown', function (e) {
+                /* If not shift pressed; exit */
+                if (!mapHandler.shiftPressed) {
+                    return;
+                }
+
+                mapHandler.mouseIsDown = 1;
+                mapHandler.mouseDownPos = e.latLng;
+            });
+
+            google.maps.event.addListener(mapHandler.map, 'mouseup', function (e) {
+                /* If not shift pressed; exit */
+                if (!mapHandler.shiftPressed) {
+                    return;
+                }
+
+                /* Set mouse up pos into object */
+                mapHandler.mouseUpPos = e.latLng;
+
+                /* Define rectangle bounds and render */
+                var bounds = new google.maps.LatLngBounds(mapHandler.mouseDownPos, mapHandler.mouseUpPos);
+                mapHandler.renderRectangle(bounds);
+                mapHandler.lassoo.trigger("click");
+
+                /* Render lassoo table */
+                var lassooTable = mapHandler.renderLassooTable();
+                mapHandler.modal.modal('show');
+                mapHandler.hideForms();
+                mapHandler.table.removeClass('hidden');
+                mapHandler.coordsRenderer.html(lassooTable);
+            });
+        },
         isBounded: function (top, left, bottom, right, latitude, longitude){
-            if(top >= latitude && latitude >= bottom){
-                if(left <= right && left <= longitude && longitude <= right){
-                    return true;
-                } else if(left > right && (left <= longitude || longitude <= right)) {
+            if (top >= latitude && latitude >= bottom){
+                if ((left <= right && left <= longitude && longitude <= right) || (left > right && (left <= longitude || longitude <= right))) {
                     return true;
                 }
             }

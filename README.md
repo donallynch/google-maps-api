@@ -32,11 +32,12 @@ None
 4. Follow overview/instructions here: https://laradock.io/
 5. Spin up the project containers: docker-compose up -d nginx mysql workspace
 6. Composer update
-7. Replace the GOOGLE MAPS API KEY in /app/config with your own key
-8. Rename file <project-root>/env-example to .env
-9. Open project directory named /public/data/ which contains GEOJSON files the User can upload
-10. Open project directory /public/images/tesing to see screenshots from my testing process
-11. Run the project in your browser: http://localhost/index
+7. Rename file <project-root>/env-example to .env
+8. php artisan key:generate
+9. Replace the GOOGLE MAPS API KEY in /app/config with your own key
+10. Open project directory named /public/data/ which contains GEOJSON files the User can upload
+11. Open project directory /public/images/tesing to see screenshots from my testing process
+12. Run the project in your browser: http://localhost/index
 
 ## API Reference
 
